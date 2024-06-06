@@ -1,0 +1,8 @@
+
+POST  http://192.168.1.203/servo HTTP/1.1
+content-type: application/json
+
+{
+    "angle": 5,
+    "index": 1
+}

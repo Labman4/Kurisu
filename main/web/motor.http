@@ -1,0 +1,7 @@
+POST  http://192.168.1.203/motor HTTP/1.1
+content-type: application/json
+
+{
+    "state": 0,
+    "index": 1
+}

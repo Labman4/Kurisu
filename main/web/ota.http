@@ -1,0 +1,6 @@
+POST  http://192.168.1.112/ota HTTP/1.1
+content-type: application/json
+
+{
+    "url": "https://nrm5rra2wy7z.objectstorage.ap-tokyo-1.oci.customer-oci.com/p/NCut9Hlgp7HTqjWG4be3Z8gDhktFgLSVWS0ne9bp7X2buM7cMpIZiUZLSAT1dN6e/n/nrm5rra2wy7z/b/ota/o/Kurisu.bin"
+}

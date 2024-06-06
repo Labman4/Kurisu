@@ -2,3 +2,4 @@ build/
 managed_components/
 version.txt
 sdkconfig.old
+sdkconfig

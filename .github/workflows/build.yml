@@ -50,6 +50,7 @@ jobs:
           
     - run: |
           mkdir -p ota
+          ls -la
           cp build/Kurisu.bin /ota/
           
     - uses: jakejarvis/s3-sync-action@master

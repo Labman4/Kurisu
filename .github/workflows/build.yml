@@ -44,8 +44,9 @@ jobs:
     #     AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}       
     #     AWS_REGION: ${{ secrets.S3_REGION }}  
     - run: |
-          mkdir -p build/ota
-          cp build/Kurisu.bin build/ota/
+          echo "path=$(pwd)" >> $GITHUB_ENV
+          mkdir -p ${{ env.path }}/build/ota
+          cp ${{ env.path }}/build/Kurisu.bin ${{ env.path }}/build/ota/
           
     - uses: jakejarvis/s3-sync-action@master
       # with:

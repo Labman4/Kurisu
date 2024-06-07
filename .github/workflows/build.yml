@@ -46,10 +46,11 @@ jobs:
     
     - run: |
           echo "path=$(pwd)" >> $GITHUB_ENV
+          ls -la
           
     - run: |
-          mkdir -p ${{ env.path }}/build/ota
-          cp ${{ env.path }}/build/Kurisu.bin ${{ env.path }}/build/ota/
+          mkdir -p ota
+          cp build/Kurisu.bin /ota/
           
     - uses: jakejarvis/s3-sync-action@master
       # with:
@@ -59,4 +60,4 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
         AWS_REGION: ${{ secrets.S3_REGION }}   # optional: defaults to us-east-1
-        SOURCE_DIR: build/ota
+        SOURCE_DIR: ota

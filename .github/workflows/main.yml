@@ -1,0 +1,22 @@
+
+name: build
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - main
+    paths-ignore:
+    -  '.github/**'
+  pull_request:
+    branches:
+    - main
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps: 
+    - uses: espressif/esp-idf-ci-action@v1.1.0
+      with:
+        esp_idf_version: 5.1.4
+        target: esp32s3
+

@@ -9,5 +9,5 @@ content-type: application/json
     "size": "VGA",
     "hz": 24000000,
     "handler": "jpeg",
-    "focus": "0"
+    "focus": 0
 }

@@ -364,16 +364,90 @@ esp_err_t stream_handler(httpd_req_t *req)
             _timestamp.tv_sec = frame->timestamp.tv_sec;
             _timestamp.tv_usec = frame->timestamp.tv_usec;
             uint8_t rc = ov5640.getFWStatus();
-            ESP_LOGW(TAG, "FW_STATUS = 0x%x\n", rc);
+            // ESP_LOGW(TAG, "FW_STATUS = 0x%x\n", rc);
 
+            // if (rc == -1) {
+            //     ESP_LOGW(TAG, "Check your OV5640");
+            // } else if (rc == FW_STATUS_S_FOCUSED) {
+            //     ESP_LOGW(TAG, "Focused!");
+            // } else if (rc == FW_STATUS_S_FOCUSING) {
+            //     ESP_LOGW(TAG, "Focusing!");
+            // }
+
+            if (frame->format == PIXFORMAT_JPEG) {
+                _jpg_buf = frame->buf;
+                _jpg_buf_len = frame->len;
+            } else if (!frame2jpg(frame, 60, &_jpg_buf, &_jpg_buf_len)) {
+                ESP_LOGE(TAG, "JPEG compression failed");
+                res = ESP_FAIL;
+            }
+        } else {
+            res = ESP_FAIL;
+        }
+
+        if (res == ESP_OK) {
+            res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY));
+            if (res == ESP_OK) {
+                size_t hlen = snprintf((char *)part_buf, 128, _STREAM_PART, _jpg_buf_len, _timestamp.tv_sec, _timestamp.tv_usec);
+                res = httpd_resp_send_chunk(req, (const char *)part_buf, hlen);
+            }
+            if (res == ESP_OK) {
+                res = httpd_resp_send_chunk(req, (const char *)_jpg_buf, _jpg_buf_len);
+            }
+
+            if (frame->format != PIXFORMAT_JPEG) {
+                free(_jpg_buf);
+                _jpg_buf = NULL;
+            }
+        }
+
+        if (gReturnFB) {
+            esp_camera_fb_return(frame);
+        } else {
+            free(frame->buf);
+        }
+
+        if (res != ESP_OK) {
+            ESP_LOGE(TAG, "Break stream handler");
+            break;
+        }
+    }
+
+    return res;
+}
+
+esp_err_t focus_stream_handler(httpd_req_t *req)
+{
+    camera_fb_t *frame = NULL;
+    struct timeval _timestamp;
+    esp_err_t res = ESP_OK;
+    size_t _jpg_buf_len = 0;
+    uint8_t *_jpg_buf = NULL;
+    char *part_buf[128];
+
+    res = httpd_resp_set_type(req, _STREAM_CONTENT_TYPE);
+    if (res != ESP_OK) {
+        return res;
+    }
+
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    httpd_resp_set_hdr(req, "X-Framerate", "15");
+
+    while (true) {
+        if (xQueueReceive(xQueueFrameI, &frame, portMAX_DELAY)) {
+            _timestamp.tv_sec = frame->timestamp.tv_sec;
+            _timestamp.tv_usec = frame->timestamp.tv_usec;
+            uint8_t rc = ov5640.getFWStatus();
+
+            ESP_LOGD(TAG, "FW_STATUS = 0x%x\n", rc);
             if (rc == -1) {
                 ESP_LOGW(TAG, "Check your OV5640");
             } else if (rc == FW_STATUS_S_FOCUSED) {
                 ESP_LOGW(TAG, "Focused!");
             } else if (rc == FW_STATUS_S_FOCUSING) {
                 ESP_LOGW(TAG, "Focusing!");
-            } else {
             }
+
             if (frame->format == PIXFORMAT_JPEG) {
                 _jpg_buf = frame->buf;
                 _jpg_buf_len = frame->len;
@@ -423,6 +497,13 @@ httpd_uri_t raw_uri = {
     .user_ctx = NULL
 };
 
+httpd_uri_t focus_uri = {
+    .uri = "/stream",
+    .method = HTTP_GET,
+    .handler = focus_stream_handler,
+    .user_ctx = NULL
+};
+
 httpd_uri_t stream_uri = {
     .uri = "/stream",
     .method = HTTP_GET,
@@ -458,9 +539,11 @@ extern "C" void start_cam(httpd_handle_t server, uint32_t xclk_freq_hz, char* pi
     cam_init = true;
     xQueueFrameI = xQueueCreate(fb_count, sizeof(camera_fb_t *));
     gReturnFB = true;
-    if (strcmp(handler, "raw") == 0) {
+    if (focus == 1) {
+        httpd_register_uri_handler(server, &focus_uri);
+    } else if (strcmp(handler, "raw") == 0) {
         httpd_register_uri_handler(server, &raw_uri);
-    }  else {
+    } else {
         httpd_register_uri_handler(server, &stream_uri);
     }
     xTaskCreate(&streamTask, "streamTask", 4096, NULL, 5, &streamHandle);

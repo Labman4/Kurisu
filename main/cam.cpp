@@ -277,15 +277,17 @@ extern "C" esp_err_t init_camera(int xclk_freq_hz, pixformat_t pixel_format, fra
     } else if (s->id.PID == GC032A_PID) {
         s->set_vflip(s, 1);
     }
-    ov5640.start(s);
+    if (s->id.PID == OV5640_PID) {
+        ov5640.start(s);
+        if (ov5640.focusInit() == 0) {
+            ESP_LOGW(TAG, "OV5640_Focus_Init Successful!");
+        }
 
-    if (ov5640.focusInit() == 0) {
-        ESP_LOGW(TAG, "OV5640_Focus_Init Successful!");
+        if (ov5640.autoFocusMode() == 0) {
+            ESP_LOGW(TAG, "OV5640_Auto_Focus Successful!");
+        }
     }
 
-    if (ov5640.autoFocusMode() == 0) {
-        ESP_LOGW(TAG, "OV5640_Auto_Focus Successful!");
-    }
     return ret;
 }
 

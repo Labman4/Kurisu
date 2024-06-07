@@ -61,7 +61,7 @@ static esp_err_t validate_image_header(esp_app_desc_t *new_app_info)
         ESP_LOGI(TAG, "Running firmware version: %s", running_app_info.version);
     }
 
-#ifndef CONFIG_EXAMPLE_SKIP_VERSION_CHECK
+#ifndef CONFIG_SKIP_VERSION_CHECK
     if (memcmp(new_app_info->version, running_app_info.version, sizeof(new_app_info->version)) == 0) {
         ESP_LOGW(TAG, "Current running version is the same as a new. We will not continue the update.");
         get_sha256_of_partitions();
@@ -193,7 +193,7 @@ void ota_task(void *pvParameter)
 {
     esp_http_client_config_t config = {
         .method = HTTP_METHOD_GET,
-        .timeout_ms = 10000,
+        .timeout_ms = CONFIG_RECV_TIMEOUT,
         .disable_auto_redirect = true,
         .crt_bundle_attach = esp_crt_bundle_attach,
         .keep_alive_enable = true,
@@ -203,33 +203,19 @@ void ota_task(void *pvParameter)
         ESP_LOGI(TAG, "ota task param %s", taskParameter);
         config.url = strdup(taskParameter);        
     } else {
-        config.url = CONFIG_EXAMPLE_FIRMWARE_UPGRADE_URL;
+        config.url = CONFIG_FIRMWARE_UPGRADE_URL;
     }
 
-#ifdef CONFIG_EXAMPLE_FIRMWARE_UPGRADE_URL_FROM_STDIN
-    char url_buf[OTA_URL_SIZE];
-    if (strcmp(config.url, "FROM_STDIN") == 0) {
-        example_configure_stdin_stdout();
-        fgets(url_buf, OTA_URL_SIZE, stdin);
-        int len = strlen(url_buf);
-        url_buf[len - 1] = '\0';
-        config.url = url_buf;
-    } else {
-        ESP_LOGE(TAG, "Configuration mismatch: wrong firmware upgrade image url");
-        abort();
-    }
-#endif
-
-#ifdef CONFIG_EXAMPLE_SKIP_COMMON_NAME_CHECK
+#ifdef CONFIG_SKIP_COMMON_NAME_CHECK
     config.skip_cert_common_name_check = true;
 #endif
     esp_https_ota_config_t ota_config = {
         .http_config = &config,
         .http_client_init_cb = _http_client_init_cb,
-        // #ifdef CONFIG_EXAMPLE_ENABLE_PARTIAL_HTTP_DOWNLOAD
-        //         .partial_http_download = true, // Register a callback to be invoked after esp_http_client is initialized
-        //         .max_http_request_size = CONFIG_EXAMPLE_HTTP_REQUEST_SIZE,
-        // #endif
+        #ifdef CONFIG_EXAMPLE_ENABLE_PARTIAL_HTTP_DOWNLOAD
+            .partial_http_download = true, // Register a callback to be invoked after esp_http_client is initialized
+            .max_http_request_size = CONFIG_HTTP_REQUEST_SIZE,
+        #endif
     };
     // esp_task_wdt_deinit();
     esp_err_t ota_finish_err = ESP_OK;
@@ -316,7 +302,7 @@ void start_ota(char* url) {
         }
     #endif
     if (url == NULL) {
-        ESP_LOGI(TAG, "DEFAULT OTA URL %s", CONFIG_EXAMPLE_FIRMWARE_UPGRADE_URL);
+        ESP_LOGI(TAG, "DEFAULT OTA URL %s", CONFIG_FIRMWARE_UPGRADE_URL);
         xTaskCreate(&ota_task, "ota_task", 8192, (void *)NULL, 5, NULL);
     } else {
         ESP_LOGI(TAG, "custom ota url");

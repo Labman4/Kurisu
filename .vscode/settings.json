@@ -1,0 +1,4 @@
+{
+    "idf.preBuildTask": "python generate_version_info.py",
+    "idf.adapterTargetName": "esp32s3"
+}

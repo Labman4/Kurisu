@@ -224,7 +224,7 @@ esp_err_t jpg_stream_httpd_handler(httpd_req_t *req){
 
 OV5640 ov5640 = OV5640();
 
-extern "C" esp_err_t init_camera(int xclk_freq_hz, pixformat_t pixel_format, framesize_t frame_size, uint8_t fb_count)
+extern "C" esp_err_t init_camera(int xclk_freq_hz, pixformat_t pixel_format, framesize_t frame_size, uint8_t fb_count. int focus)
 {
     camera_config_t camera_config = {
         .pin_pwdn = CAM_PIN_PWDN,
@@ -277,7 +277,7 @@ extern "C" esp_err_t init_camera(int xclk_freq_hz, pixformat_t pixel_format, fra
     } else if (s->id.PID == GC032A_PID) {
         s->set_vflip(s, 1);
     }
-    if (s->id.PID == OV5640_PID) {
+    if (s->id.PID == OV5640_PID && focus == 1) {
         ov5640.start(s);
         if (ov5640.focusInit() == 0) {
             ESP_LOGW(TAG, "OV5640_Focus_Init Successful!");
@@ -440,7 +440,7 @@ void streamTask(void *pvParameters) {
     }
 }
 
-extern "C" void start_cam(httpd_handle_t server, uint32_t xclk_freq_hz, char* pixel_format, char* frame_size, uint8_t fb_count, char* handler) {
+extern "C" void start_cam(httpd_handle_t server, uint32_t xclk_freq_hz, char* pixel_format, char* frame_size, uint8_t fb_count, char* handler, int focus) {
     ESP_LOGW(TAG, "hz %lu, format %s, size %s reinit %d", xclk_freq_hz, pixel_format, frame_size, cam_init);
     if (cam_init) {
         ESP_LOGW(TAG, "reninit camera");
@@ -454,7 +454,7 @@ extern "C" void start_cam(httpd_handle_t server, uint32_t xclk_freq_hz, char* pi
             streamHandle = NULL;
         }
     }
-    ESP_ERROR_CHECK(init_camera(xclk_freq_hz, str_to_pixformat(pixel_format), str_to_framesize(frame_size), fb_count));
+    ESP_ERROR_CHECK(init_camera(xclk_freq_hz, str_to_pixformat(pixel_format), str_to_framesize(frame_size), fb_count, focus));
     cam_init = true;
     xQueueFrameI = xQueueCreate(fb_count, sizeof(camera_fb_t *));
     gReturnFB = true;
@@ -523,7 +523,7 @@ extern "C" void camera_performance_test_with_format(httpd_handle_t server, uint3
     framesize_t size = str_to_framesize(frame_size);
     // detect sensor information
     t1 = esp_timer_get_time();
-    TEST_ESP_OK(init_camera(20000000, format, size, count));
+    TEST_ESP_OK(init_camera(20000000, format, size, count, 0));
     printf("Cam prob %llu\n", (esp_timer_get_time() - t1) / 1000);
     // get sensor info
     sensor_t *s = esp_camera_sensor_get();
@@ -539,7 +539,7 @@ extern "C" void camera_performance_test_with_format(httpd_handle_t server, uint3
     };
     struct fps_result results = {0};
 
-    ret = init_camera(xclk_freq, format, size, count);
+    ret = init_camera(xclk_freq, format, size, count, 0);
     vTaskDelay(100);
     if (ESP_OK != ret) {
         ESP_LOGW(TAG, "Testing init failed :-(, skip this item");

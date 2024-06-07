@@ -46,6 +46,7 @@ esp_err_t cam_handler(httpd_req_t *req){
     const cJSON *count = cJSON_GetObjectItemCaseSensitive(json, "count");
     const cJSON *testNum = cJSON_GetObjectItemCaseSensitive(json, "testNum");
     const cJSON *handler = cJSON_GetObjectItemCaseSensitive(json, "handler");
+    const cJSON *focus = cJSON_GetObjectItemCaseSensitive(json, "focus");
 
     char* default_handler = "stream";
     char* default_format = "RGB565";
@@ -54,6 +55,7 @@ esp_err_t cam_handler(httpd_req_t *req){
     int default_test = 1;
     int default_count = 1;
     int default_testNum = 360;
+    int default_focus = 0;
 
     if (cJSON_IsNumber(hz)) {
         ESP_LOGD(TAG, "hz: %d", hz->valueint);
@@ -84,12 +86,17 @@ esp_err_t cam_handler(httpd_req_t *req){
         } 
     }
 
+    if (cJSON_IsNumber(focus)) {
+        ESP_LOGD(TAG, "focus: %d", focus->valueint);
+        default_focus = focus->valueint;
+    }
+
     if (cJSON_IsNumber(count)) {
         ESP_LOGD(TAG, "count: %d", count -> valueint);
         default_count = count -> valueint;
     }
     if (default_test == 1) {
-        start_cam(server, default_hz, default_format, default_size, default_count, default_handler);
+        start_cam(server, default_hz, default_format, default_size, default_count, default_handler, default_focus);
     } else {
         camera_performance_test_with_format(server, default_hz, default_testNum, default_format, default_size, default_count);
     }

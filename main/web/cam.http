@@ -1,12 +1,13 @@
-POST  http://192.168.1.113/cam HTTP/1.1
+POST  http://192.168.1.112/cam HTTP/1.1
 content-type: application/json
 
 {
     "count": 2,
     "format": "JPEG",
-    "test": 1,
+    "test": 0,
     "testNum": 200,
-    "size": "HD",
+    "size": "VGA",
     "hz": 24000000,
-    "handler": "jpeg"
+    "handler": "jpeg",
+    "focus": "0"
 }

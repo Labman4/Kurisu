@@ -27,7 +27,6 @@ jobs:
     - name: upload firemare
       uses: actions/upload-artifact@v4.3.3
       with:
-        name: firemare
         path: build/Kurisu.bin
         retention-days: 90
         compression-level: 0

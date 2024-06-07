@@ -43,8 +43,11 @@ jobs:
     #     AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
     #     AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}       
     #     AWS_REGION: ${{ secrets.S3_REGION }}  
+    
     - run: |
           echo "path=$(pwd)" >> $GITHUB_ENV
+          
+    - run: |
           mkdir -p ${{ env.path }}/build/ota
           cp ${{ env.path }}/build/Kurisu.bin ${{ env.path }}/build/ota/
           

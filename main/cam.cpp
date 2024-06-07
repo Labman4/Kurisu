@@ -224,7 +224,7 @@ esp_err_t jpg_stream_httpd_handler(httpd_req_t *req){
 
 OV5640 ov5640 = OV5640();
 
-extern "C" esp_err_t init_camera(int xclk_freq_hz, pixformat_t pixel_format, framesize_t frame_size, uint8_t fb_count. int focus)
+extern "C" esp_err_t init_camera(int xclk_freq_hz, pixformat_t pixel_format, framesize_t frame_size, uint8_t fb_count, int focus)
 {
     camera_config_t camera_config = {
         .pin_pwdn = CAM_PIN_PWDN,

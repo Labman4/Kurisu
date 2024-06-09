@@ -27,7 +27,10 @@ jobs:
     - name: upload firemare
       uses: actions/upload-artifact@v4.3.3
       with:
-        path: build/*.bin
+        path: |
+          build/*.bin
+          build/bootloader/*.bin
+          build/partition_table/*.bin
         retention-days: 90
         compression-level: 0
 
